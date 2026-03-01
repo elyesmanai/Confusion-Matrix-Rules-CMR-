@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.metrics import f1_score
 from tqdm import tqdm
 
+#Fonction 3 Mesurer la couverture
 def compute_rule_coverage(rules_df, len_rows):
     """
     Computes total support, removes duplicate IDs, and sorts rules by percentage.
@@ -11,11 +12,11 @@ def compute_rule_coverage(rules_df, len_rows):
     :param len_rows: Total number of rows in the dataset (for percentage calculations).
     :return: Sorted DataFrame of rules.
     """
-    # Compute total support
+    # Compute total support / Calcule le support total (avec doublons) par exemple: somme des supports = 1200 sur 10000 lignes → 12%
     total_support = rules_df['support'].sum()
     support_pct = round(total_support / len_rows * 100, 2)
     
-    # Remove duplicate IDs
+    # Remove duplicate IDs /supprime les doublons (une ligne peut être couverte par plusieurs règles)
     unique_ids = set(item for sublist in rules_df['ids'].values for item in sublist)
     unique_ids_pct = round(len(unique_ids) / len_rows * 100, 2)
     
@@ -24,9 +25,10 @@ def compute_rule_coverage(rules_df, len_rows):
     print("After removing duplicates:")
     print(f"Unique Coverage: {unique_ids_pct}% ({len(unique_ids)})")
     
-    # Return sorted DataFrame
+    # Return sorted DataFrame / Retourne les règles triées par pourcentage
     return rules_df.sort_values(by='pct', ascending=False), unique_ids
 
+#FONCTION2
 def get_exclusive_rules(cmc, analysis_features):
     """
     Finds exclusive rules where a feature value uniquely maps to one CMC category.
@@ -39,11 +41,19 @@ def get_exclusive_rules(cmc, analysis_features):
     exclusivity_rules_list = []
 
     # Iterate over features while dropping analysis features
+        # Pour chaque feature (sauf celles dans analysis_features)
     for feature in tqdm(cmc.columns.drop(analysis_features)):
         # Get unique CMC groups for each feature value
+            # ÉTAPE 1: Pour chaque valeur de la feature, combien de CMC différents ?
+            # Exemple: feature='protocol_type'
+            # icmp → 1 (seulement TP)
+            # tcp  → 2 (TP et TN) 
+            # udp  → 1 (seulement TN)
         value_to_cmc = cmc.groupby(feature)['CMC'].nunique()
 
         # Filter values that belong to only one CMC group
+            # ÉTAPE 2: Garde seulement les valeurs avec UN SEUL CMC
+            # Résultat: ['icmp', 'udp']
         exclusive_values = value_to_cmc[value_to_cmc == 1].index
 
         # If no exclusive values, skip
@@ -51,18 +61,24 @@ def get_exclusive_rules(cmc, analysis_features):
             continue
 
         # Get mapping of each exclusive value to its corresponding CMC category
+            # ÉTAPE 3: Quel est le CMC pour chaque valeur exclusive ?
+            # icmp → 'TP', udp → 'TN'
         cmc_map = cmc.groupby(feature)['CMC'].first()
 
         # Get IDs for all exclusive values in one step
+            # ÉTAPE 4: Quels sont les IDs (indices) pour ces valeurs ?
+            # icmp → [0, 5, 12, 45] juste des exemples que jai pris
+            # udp  → [3, 7, 89, 123] juste des exemple prise
         id_map = cmc[cmc[feature].isin(exclusive_values)].groupby(feature).apply(lambda x: x.index.tolist())
 
         # Construct rules efficiently
+        # cest ici q'on cree les regles
         for val in exclusive_values:
             group = cmc_map[val]
             ids = id_map[val]
-
+            # Ne garde que les règles correctes (TP et TN)
             if group in ['TP', 'TN']:
-                pred = 1 if group == 'TP' else 0
+                pred = 1 if group == 'TP' else 0   # TP → prédire 1, TN → prédire 0
                 support = len(ids)
                 pct = round(support / len_rows * 100, 2)
 
@@ -72,15 +88,19 @@ def get_exclusive_rules(cmc, analysis_features):
     # Convert list to DataFrame at the end for efficiency
     return pd.DataFrame(exclusivity_rules_list, columns=['feature', 'is', 'value', 'predict', 'support', 'pct', 'ids'])
 
+#1er FONCTION:  Cette fonction transforme les prédictions d’un modèle brute en une analyse détaillée des erreurs (TP, TN, FP, FN) directement intégrée aux données et comprehensible.
 def make_cmc(df, y_train, y_pred_train):
     """Fast CMC computation using NumPy vectorization."""
+    # 1. Copie le DataFrame pour ne pas modifier l'original
     train = df.copy()
     
     # Convert target variables to NumPy arrays to avoid broadcasting issues
+    # 2. Convertit en tableaux NumPy (plus rapide)
     y_train = np.array(y_train).flatten()
     y_pred_train = np.array(y_pred_train).flatten()
 
     # Ensure they have the same length as df
+    # 3. Ici on vérifie si les longueurs correspondent
     assert len(y_train) == len(df), "y_train length does not match dataframe rows"
     assert len(y_pred_train) == len(df), "y_pred_train length does not match dataframe rows"
 
@@ -88,13 +108,14 @@ def make_cmc(df, y_train, y_pred_train):
     train['label'] = y_train
     train['predicted'] = y_pred_train
 
-    # Compute CMC categories efficiently using NumPy
-    train['CMC'] = np.where(y_pred_train == y_train, 
-                            np.where(y_pred_train == 1, 'TP', 'TN'), 
-                            np.where(y_pred_train == 1, 'FP', 'FN'))
+    # Compute CMC categories efficiently using NumPy           calcule des CMC
+    train['CMC'] = np.where(y_pred_train == y_train, # si prediction correcte 
+                            np.where(y_pred_train == 1, 'TP', 'TN'), # TP si prédit 1, sinon TN
+                            np.where(y_pred_train == 1, 'FP', 'FN')) # FP si prédit 1, sinon FN
 
     return train
 
+#Fonction 4 Comparer deux ensembles
 def compute_rule_overlap(uids_minmax, uids_ex, len_rows):
     """
     Computes overlap and unique coverage between two rule sets.
@@ -105,12 +126,12 @@ def compute_rule_overlap(uids_minmax, uids_ex, len_rows):
     :return: Dictionary with overlap statistics.
     """
     
-    # Compute intersection (common IDs in both rule sets)
+    # Compute intersection (common IDs in both rule sets) / Trouve les IDs communs aux deux ensembles
     intersection_ids = uids_minmax.intersection(uids_ex)
     intersection_count = len(intersection_ids)
     intersection_pct = round(intersection_count / len_rows * 100, 2)
     
-    # Compute total unique IDs without double counting overlap
+    # Compute total unique IDs without double counting overlap /Calcule le total sans double-compte
     total_unique_ids = len(uids_minmax) + len(uids_ex) - intersection_count
     total_unique_pct = round(total_unique_ids / len_rows * 100, 2)
     
@@ -130,23 +151,24 @@ def compute_rule_overlap(uids_minmax, uids_ex, len_rows):
         "unique_pct": total_unique_pct
     }
 
+#Fonction 5 
 def apply_exclusive_rules(X_test, exclusive_rules, model=None, default_label=None):
-    # Initialize predictions with 0, then change skipped ones to None
-    y_pred = np.full(len(X_test), 0, dtype=object)  # Start with 0
-    conflict_mask = np.zeros(len(X_test), dtype=bool)  # Tracks conflicts
-    no_rule_mask = np.ones(len(X_test), dtype=bool)  # Tracks uncovered cases (start with all True)
+    # Initialize predictions with 0, then change skipped ones to None /INITIALISATION
+    y_pred = np.full(len(X_test), 0, dtype=object)  # Start with 0 /[0, 0, 0, ...]
+    conflict_mask = np.zeros(len(X_test), dtype=bool)  # Tracks conflicts / [False, False, ...]
+    no_rule_mask = np.ones(len(X_test), dtype=bool)  # Tracks uncovered cases (start with all True)  /[True, True, ...]
 
     for _, rule in tqdm(exclusive_rules.iterrows(), total=len(exclusive_rules)):
         feature, value, label, pct = rule['feature'], rule['value'], rule['predict'], rule['pct']
 
-        # Apply rule
+        # Apply rule / trouve les lignes où cette règle s'applique
         mask = X_test[feature] == value
         matching_indices = np.where(mask)[0]
 
         for idx in matching_indices:
-            no_rule_mask[idx] = False  # Rule covered this instance
+            no_rule_mask[idx] = False  # Rule covered this instance / Cette ligne est couverte
 
-            if y_pred[idx] == 0:  # If still default, assign the first rule
+            if y_pred[idx] == 0:  # If still default, assign the first rule /Première règle pour cette ligne
                 y_pred[idx] = (label, pct)  
             else:
                 prev_label, prev_pct = y_pred[idx] if isinstance(y_pred[idx], tuple) else (y_pred[idx], 0)
@@ -161,9 +183,12 @@ def apply_exclusive_rules(X_test, exclusive_rules, model=None, default_label=Non
 
 
     # Extract final predictions, replacing default 0 with None where necessary
+        # Nettoyer les prédictions
+        # Transforme (label, pct) en label, et 0 en None
     y_pred = [p[0] if isinstance(p, tuple) else (None if p == 0 else p) for p in y_pred]
 
     # Track reasons for skipping
+         # Analyser les cas non couverts
     skipped_mask = [p is None for p in y_pred]
     skipped_total = sum(skipped_mask)
 
@@ -176,6 +201,7 @@ def apply_exclusive_rules(X_test, exclusive_rules, model=None, default_label=Non
         "Skipped total does not match the sum of conflict and no-rule skips!"
 
     # Convert to NumPy array for filtering
+        # Calculer F1 sur les cas couverts
     y_test = X_test['label'].values
     valid_mask = ~np.array(skipped_mask)
     y_pred_valid = np.array(y_pred)[valid_mask].astype(np.int64)  # Convert to numeric
