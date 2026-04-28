@@ -1,0 +1,22 @@
+Données Adult chargées
+
+=== XGBoost ===
+{'accuracy': 0.8753262705358513, 'balanced_accuracy': 0.7969251078262138, 'precision': 0.7990543735224587, 'recall': 0.645448758752387, 'f1': 0.7140845070422536, 'accuracy_train': 0.8748080466830467, 'f1_train': 0.7087092451987494, 'training_time': 0.40883827209472656}
+Learning DNF rule with complexity parameters lambda0=0.001, lambda1=0.001
+Initial LP solved
+Iteration: 1, Objective: 0.2181
+Iteration: 2, Objective: 0.1897
+Iteration: 3, Objective: 0.1843
+Iteration: 4, Objective: 0.1843
+Iteration: 5, Objective: 0.1843
+
+=== BRCG ===
+{'F1_train': 0.8043357582201471, 'F1_test': 0.8026137894465102, 'Train_Coverage': nan, 'Train_Exactitude': 0.8200245700245701, 'Test_Coverage': nan, 'Test_Exactitude': 0.8189774297558728, 'Conflit': nan, 'Non_couverts': nan, 'F1_rmaj': nan, 'F1_rr': nan, 'Complexité': 2.0, 'Nb_règles': 2, 'Nb_conditions': 4, 'Temps': None, 'RAM_MB': None}
+
+=== RIPPER ===
+{'F1_train': 0.8171072410702335, 'F1_test': 0.8140293994418063, 'Train_Coverage': nan, 'Train_Exactitude': 0.8246314496314496, 'Test_Coverage': nan, 'Test_Exactitude': 0.8214340549669891, 'Conflit': nan, 'Non_couverts': nan, 'F1_rmaj': nan, 'F1_rr': nan, 'Complexité': 4.25, 'Nb_règles': 20, 'Nb_conditions': 85, 'Temps': None, 'RAM_MB': None}
+
+===== Comparaison des modèles =====
+XGBoost  -> Accuracy: 0.8753 | F1: 0.7141
+BRCG     -> Accuracy: 0.8190 | F1: 0.8026
+RIPPER   -> Accuracy: 0.8214 | F1: 0.8140
