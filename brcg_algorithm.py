@@ -6,6 +6,44 @@ import pandas as pd
 from aix360.algorithms.rbm import FeatureBinarizer, BooleanRuleCG
 from sklearn.metrics import accuracy_score, f1_score
 
+def train_brcg_te(x_train, y_train, lambda0=0.001, lambda1=0.001):
+    """
+    TE BRCG : binarisation + apprentissage du modèle.
+    """
+    fb = FeatureBinarizer(negations=True)
+    X_train_bin = fb.fit_transform(x_train)
+
+    if isinstance(X_train_bin, pd.DataFrame):
+        columns = list(X_train_bin.columns)
+        X_train_bin = X_train_bin.fillna(0).astype(int)
+    else:
+        X_train_bin = np.nan_to_num(X_train_bin)
+        columns = [f"f{i}" for i in range(X_train_bin.shape[1])]
+        X_train_bin = pd.DataFrame(X_train_bin, columns=columns).astype(int)
+
+    model = BooleanRuleCG(
+        lambda0=lambda0,
+        lambda1=lambda1,
+        verbose=False
+    )
+
+    model.fit(X_train_bin, y_train)
+
+    return model, fb, columns
+
+
+def generate_brcg_rules_tg(model):
+    """
+    TG BRCG : génération des règles avec explain().
+    """
+    try:
+        rules = model.explain()
+        if not isinstance(rules, dict) or len(rules.get("rules", [])) == 0:
+            return None
+        return rules
+    except Exception:
+        return None
+
 
 def train_brcg(x_train, y_train, x_test, y_test, lambda0=0.001, lambda1=0.001):
     """

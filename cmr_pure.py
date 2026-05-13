@@ -4,6 +4,36 @@ from sklearn.metrics import f1_score, accuracy_score
 
 from explainer import make_cmc, get_exclusive_rules
 
+# =========================
+# CMR : séparation TE / TG
+# =========================
+
+def train_cmr_te(X_train, y_train, predictions_model_train=None):
+    """
+    TE CMR : construction du CMC.
+    """
+    y_train = pd.Series(y_train).astype(int).reset_index(drop=True)
+
+    if predictions_model_train is None:
+        predictions_model_train = y_train
+
+    return make_cmc(
+        X_train.copy(),
+        y_train,
+        predictions_model_train
+    )
+
+
+def generate_cmr_rules_tg(train_cmc, support_min=3):
+    """
+    TG CMR : génération des règles à partir du CMC.
+    """
+    rules = get_exclusive_rules(
+        train_cmc,
+        analysis_features=["label", "predicted", "CMC"]
+    )
+
+    return rules[rules["support"] >= support_min].reset_index(drop=True)
 
 def _predict_with_rules(X, rules):
     """

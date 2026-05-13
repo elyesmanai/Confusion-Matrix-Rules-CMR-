@@ -6,6 +6,35 @@ import wittgenstein as lw
 
 from sklearn.metrics import accuracy_score, f1_score
 
+def train_ripper_te(x_train, y_train, prune_size=0.33, k=2, max_rules=50):
+    """
+    TE RIPPER : apprentissage du modèle.
+    """
+    train_data = x_train.copy()
+    train_data["label"] = pd.Series(y_train).values
+
+    model = lw.RIPPER(
+        prune_size=prune_size,
+        k=k,
+        max_rules=max_rules
+    )
+
+    model.fit(
+        train_data,
+        class_feat="label",
+        pos_class=1,
+        neg_class=0
+    )
+
+    return model
+
+
+def generate_ripper_rules_tg(model):
+    """
+    TG RIPPER : récupération des règles.
+    """
+    return getattr(model, "ruleset_", None)
+
 
 def train_ripper(x_train, y_train, x_test, y_test, prune_size=0.33, k=2, max_rules=50):
     """

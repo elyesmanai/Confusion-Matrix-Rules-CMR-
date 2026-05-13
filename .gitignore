@@ -1,0 +1,5 @@
+Datasets/**
+!Datasets/.gitkeep
+
+__pycache__/
+*.pyc

@@ -12,31 +12,16 @@ from extract_rules import extract_cmr_rules_from_model_predictions # pour obteni
 
 
 datasets = {
-    "KDD99": "../../Datasets/KDD99/",
-    "BIG15": "../../Datasets/BIG15/",
-    "DoH20": "../../Datasets/DoH20/",
-    "UNSW-NB15": "../../Datasets/UNSW-NB15/processed/"
+    "KDD99": "../Datasets/KDD99/",
+    "BIG15": "../Datasets/BIG15/",
+    "DoH20": "../Datasets/DoH20/",
+    "UNSW-NB15": "../Datasets/UNSW-NB15/processed/"
 }
 
 rows = []
 
 for name, path in datasets.items():
     print(f"\n===== {name} =====")
-
-    # X_train, y_train, X_test, y_test = load_dataset(name, path)
-    # X_train, y_train, X_test, y_test = prepare_data(X_train, y_train, X_test, y_test)
-
-    # for smin in [1, 3, 50]:
-    #     print(f"  -> s_min = {smin}")
-
-    #     payload = train_cmr_pure(
-    #         X_train,
-    #         y_train,
-    #         X_test,
-    #         y_test,
-    #         support_min=smin
-    #     )
-    #debut
     X_train, y_train, X_test, y_test = load_dataset(name, path)
     X_train, y_train, X_test, y_test = prepare_data(X_train, y_train, X_test, y_test)
 

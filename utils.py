@@ -25,10 +25,10 @@ pandas : 1.5.3
 #       Configuration
 # =========================
 DATASETS = {
-    "KDD99": "../Datasets/KDD99/",
-    "BIG15": "../Datasets/BIG15/",
-    "UNSW-NB15": "../Datasets/UNSW-NB15/processed/",
-    "DoH20": "../Datasets/DoH20/"
+    "KDD99": "Datasets/KDD99/",
+    "BIG15": "Datasets/BIG15/",
+    "UNSW-NB15": "Datasets/UNSW-NB15/processed/",
+    "DoH20": "Datasets/DoH20/"
 }
 
 COLUMNS = [
@@ -154,6 +154,19 @@ def run_with_peak_ram(func, *args, interval=0.05, **kwargs):
     added_ram_mb = max(0.0, (peak_rss["value"] - baseline_rss) / 1024**2)
 
     return result_holder["result"], elapsed, added_ram_mb
+
+# ==============================================
+# # Combinaison des métriques de temps et de RAM
+# ==============================================
+def combine_time_ram(te, tg, ram_te, ram_tg):
+    return {
+        "TE": round(te, 4),
+        "TG": round(tg, 4),
+        "TT": round(te + tg, 4),
+        "RAM_TE_MB": round(ram_te, 4),
+        "RAM_TG_MB": round(ram_tg, 4),
+        "RAM_TT_MB": round(ram_te + ram_tg, 4),
+    }
 
 
 # =========================

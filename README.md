@@ -1,188 +1,511 @@
-==============================================================
-||Projet : Explication de modèles avec CMR, RIPPER et BRCG  ||
-||Objectif du projet                                        ||
-==============================================================
-Ce projet vise à expliquer un modèle de machine learning (boîte noire) à l’aide de méthodes explicables basées sur des règles :
-•	CMR (Confusion Matrix Rules)
-•	RIPPER
-•	BRCG
-L’objectif est de :
-•	Extraire des règles à partir des prédictions du modèle
-•	Comparer ces règles au modèle initial
-•	Mesurer leur fidélité et leur couverture
+#==============================================================#
+||   Projet XAI basé sur CMR, RIPPER et BRCG pour la         ||
+||   cybersécurité et l’explicabilité des modèles IA         ||
+#==============================================================#
 
-=============================================================================
- Pipeline global
-    Le pipeline suit les étapes suivantes :
-    1. Raw data (X, y)
-            ↓
-    2. XGBoost (modèle boîte noire)
-            ↓
-    3. predictions_model
-            ↓
-    4. XAI (CMR / RIPPER / BRCG)
-            ↓
-    5. rules
-            ↓
-    6. Application des règles sur X_test
-            ↓
-    7. predictions_rules
-            ↓
-    8. Évaluation (F1,temps test, ram test, Coverage, Fidelity)
+# Présentation
 
-===========================================================================
-== Structure du projet==
-    1. Modèle boîte noire
-    xgb_blackbox.py
-    •	Entraîne un modèle XGBoost
-    •	Génère :
-    o	predictions_model_train
-    o	predictions_model_test
-===========================================================================
- 2. Extraction des règles
-    extract_rules.py
-    •	Utilise predictions_model_train pour entraîner :
-    o	CMR
-    o	RIPPER
-    o	BRCG
-    ==> Important : les méthodes explicables apprennent à imiter XGBoost.
-============================================================================
- 3. Prédictions avec les règles
-    predictions_rules.py
-    •	Applique les règles sur X_test
-    •	Produit :
-    o	predictions_CMR
-    o	predictions_RIPPER
-    o	predictions_BRCG
-============================================================================
- 4. Métriques de fidélité
-    fidelity.py
-    •	Compare :
-    predictions_model vs predictions_rules
-    •	Donne la fidélité globale (%)
-============================================================================
- 5. Coverage + Fidelity couverte
-    covered_fidelity.py
-    Calcule :
-    •	Coverage_total = % de données couvertes par les règles
-    •	Fidelity_covered = fidélité uniquement sur ces données
-===========================================================================
-6. run_all_datasets.py
-Compare CMR, RIPPER et BRCG directement sur (X, y).
+Ce projet implémente un pipeline complet d’intelligence artificielle explicable (XAI)
+basé sur des règles afin d’expliquer un modèle de machine learning de type boîte noire.
 
-    Pas de XGBoost -> pas de fidélité
-    Évaluation classique (F1, temps, RAM, etc.)
+Le modèle principal utilisé comme référence est un modèle entraîné avec l’algorithme XGBoost.
 
- Fichier dans "supprimer" → à remettre dans le dossier principal pour l’utiliser (les fichiers tests inclus, donc pareil).
+Les approches explicables étudiées sont :
+
+- CMR (Confusion Matrix Rules)
+- RIPPER (Repeated Incremental Pruning to Produce Error Reduction)
+- BRCG (Boolean Rule Column Generation)
+
+L’objectif du projet est de :
+
+- entraîner un modèle de classification ;
+- extraire des règles explicables ;
+- reproduire le comportement du modèle boîte noire ;
+- mesurer la fidélité des règles ;
+- analyser la couverture des règles ;
+- comparer les performances des approches explicables.
+
+Le projet est orienté vers des datasets de cybersécurité et de détection d’intrusion réseau.
+
+------------------------------------------------------
+
+# Pipeline expérimental
+
+Le pipeline global suit les étapes suivantes :
+
+Raw data (X, y) -->
+                    XGBoost
+                    (modèle boîte noire) -->     
+                                             predictions_model -->
+                                                                   CMR / RIPPER / BRCG -->
+                                                                                           rules -->
+                                                                                                     Application des règles sur X_test --> 
+                                                                                                                                           predictions_rules -->
+                                                                                                                                                                 Évaluation : 
+                                                                                                                                                                 F1, Coverage, Fidelity, Temps, RAM
+
+------------------------------------------------------
+
+# Structure du projet
+
+## Modèle boîte noire
+
+### `xgb_blackbox.py`
+
+Entraîne XGBoost et génère :
+* predictions_model_train
+* predictions_model_test
+
+Permet également l’évaluation du modèle de référence.
+
+------------------------------------------------------
+
+## Pipeline CMR hybride
+
+### `cmr_xgb_pipeline.py`
+
+Implémente un pipeline hybride :
+X --> XGBoost --> predictions_model --> CMR --> règles
+
+Le modèle XGBoost est utilisé comme fallback
+pour les instances non couvertes par les règles.
+
+------------------------------------------------------
+
+## Pipeline CMR pur
+
+### `cmr_pure.py`
+
+Implémente un CMR basé uniquement sur les règles :
+X --> règles --> prédictions
+
+Les cas non couverts utilisent la classe majoritaire.
+
+------------------------------------------------------
+
+## Extraction des règles
+
+### `extract_rules.py`
+
+Extrait les règles CMR, RIPPER et BRCG
+à partir des prédictions du modèle XGBoost.
+
+Pipeline :
+predictions_model --> XAI --> rules
+
+------------------------------------------------------
+
+## Génération des prédictions des règles
+
+### `predictions_rules.py`
+
+Applique les règles générées sur les données de test
+et produit :
+* predictions_CMR
+* predictions_RIPPER
+* predictions_BRCG
+
+------------------------------------------------------
+
+## Calcul de fidélité
+
+### `fidelity.py`
+
+Compare :
+
+predictions_model
+                        vs
+                                predictions_rules
 
 
-===========================================================================
-7. xgboost_rule_extraction.py
+Calcule la fidélité globale des règles
+par rapport au modèle XGBoost.
 
-Script qui entraine un modèle XGBoost puis génère des règles CMR à partir de ses prédictions.
+------------------------------------------------------
 
- Entraîne XGBoost sur (X, y)
- Génère "predictions_model"
- Extrait des règles via CMR (explainer)
- Applique les règles sur le test
+## Coverage et fidélité couverte
 
-Ce script implémente le pipeline XAI complet (modèle boîte noire → règles).
+### `covered_fidelity.py`
 
-===========================================================================
- 8. Métriques complètes
-        cmr_pure.py, ripper_algorithm.py, brcg_algorithm.py
-        Calculent :
-            •	F1_train / F1_test
-            •	Coverage
-            •	Exactitude
-            •	Complexité
-            •	Nombre de règles
-            •	Nombre de conditions
-            •   etc ...
+Calcule :
+* Coverage_total
+* Fidelity_covered
 
-    Fonctions utilitaires : 
-        utils.py : Ce fichier regroupe les fonctions générales du projet.
+La fidélité couverte est calculée uniquement
+sur les données réellement couvertes par les règles.
 
-==========================================================================
- 9. Script principal
-    run_all_datasets_iterations_fidelity.py
-    •	Lance les expériences sur tous les datasets
-    •	Répète sur plusieurs itérations
-    •	Sauvegarde les résultats dans :
-    results/progress_iterations.csv
-==========================================================================
- Datasets utilisés
-    DATASETS = {
-        "KDD99": "../Datasets/KDD99/",
-        "BIG15": "../Datasets/BIG15/",
-        "UNSW-NB15": "../Datasets/UNSW-NB15/processed/",
-        "DoH20": "../Datasets/DoH20/"
-    }
-==========================================================================
- Métriques utilisées
-    Classification
-    •	F1_train
-    •	F1_test
-    Coverage
-    •	Train_Coverage
-    •	Test_Coverage
-    •	Coverage_total
-    Fidelity
-    •	Fidelity (globale)
-    •	Fidelity_covered (sur zone couverte)
-    Autres
-    •	Complexité
-    •	Nombre de règles
-    •	Nombre de conditions
-    •	Temps (test uniquement)
-    •	RAM (test uniquement)
-========================================================================
- Temps et mémoire
-    Important :
-    Les mesures de temps et RAM correspondent uniquement à :
-    Application des règles sur X_test
-    Elles n’incluent pas :
-    •	l’entraînement XGBoost
-    •	l’extraction des règles
-=======================================================================
- Interprétation des méthodes
-    CMR
-    •	Coverage réel des règles
-    •	Fidelity calculée uniquement sur les cas couverts
-    RIPPER & BRCG
-    •	Coverage = 100% (modèles complets)
-    •	Fidelity_covered = fidélité globale
-=======================================================================
- Exécution
-    1. Activer l’environnement
-        conda activate cyber_rules
-    2. Lancer le script
-        python run_all_datasets_iterations_fidelity.py
-=======================================================================
-Tableaux : 
-    Pour consulter les résultats des tableaux, voir le dossier results/tableaux_results.
+------------------------------------------------------
 
-        Table 7 : Comparaison globale des performances (Accuracy, Coverage, F1, Complexité) entre CMR, RIPPER et BRCG.
-        Table 8 : Analyse de l’impact du paramètre s_min sur les règles et les performances.
-        Table 9 : Évaluation de la stabilité des modèles avec moyenne et écart-type (μ ± σ).
-        Table 10 : Comparaison statistique (CMR vs baselines) avec amélioration et p-value (test de Wilcoxon).
-        Table temps : Mesure du temps de génération des explications globales pour chaque méthode.
-=======================================================================
- Résultats
-     Pour consulter les Résultats, voir le dossier results.
-        Fichier principal
-            results/progress_iterations.csv
-            Contient :
-            •	résultats par dataset
-            •	résultats par méthode
-            •	résultats par itération
-        Fichier final
-        results/tableau_comparatif_avec_nouvelles_metriques.csv
-        Contient :
-            •   la moyenne des résultats sur les itérations
-            •   un résumé final pour chaque :
-                                            •   dataset
-                                            •   méthode (CMR, RIPPER, BRCG)
-=======================================================================
+## Algorithme RIPPER
 
+### `ripper_algorithm.py`
+
+Implémentation complète de RIPPER :
+
+* apprentissage ;
+* extraction des règles ;
+* calcul des métriques ;
+* calcul de complexité ;
+* évaluation du modèle.
+
+------------------------------------------------------
+
+## Algorithme BRCG
+
+### `brcg_algorithm.py`
+
+Implémentation complète de BRCG :
+
+* binarisation des données ;
+* apprentissage du modèle logique ;
+* extraction des règles ;
+* calcul des métriques ;
+* calcul de complexité.
+
+------------------------------------------------------
+
+## Fonctions CMR
+
+### `explainer.py`
+
+Contient les fonctions principales du CMR :
+
+* construction du CMC ;
+* extraction des règles exclusives ;
+* calcul de coverage ;
+* application des règles ;
+* gestion des conflits.
+
+------------------------------------------------------
+
+## Fonctions utilitaires
+
+### `utils.py`
+
+Regroupe les fonctions générales du projet :
+
+* chargement des datasets ;
+* préparation des données ;
+* nettoyage ;
+* mesure du temps ;
+* mesure de la RAM ;
+* alignement des données.
+
+------------------------------------------------------
+
+## Script principal
+
+### `run_all_datasets_fidelity.py`
+
+Script principal des expériences.
+
+Permet :
+
+* d’exécuter les expériences sur tous les datasets ;
+* d’évaluer CMR, RIPPER et BRCG ;
+* de calculer la fidélité ;
+* de mesurer Coverage, Temps et RAM ;
+* de sauvegarder automatiquement les résultats.
+
+------------------------------------------------------
+
+## Pipeline XGBoost + règles
+
+### `xgboost_rule_extraction.py`
+
+Pipeline complet :
+
+
+XGBoost → règles → fidélité
+
+Ce script :
+
+* entraîne XGBoost ;
+* construit le CMC ;
+* extrait les règles ;
+* applique les règles sur le test ;
+* mesure les performances.
+
+------------------------------------------------------
+
+## Dataset Adult
+
+### `adultdata_preparation_evaluat.py`
+
+Préparation et encodage du dataset Adult :
+
+* nettoyage ;
+* encodage catégoriel ;
+* séparation train/test ;
+* évaluation de règles manuelles.
+
+------------------------------------------------------
+
+## Expériences Adult
+
+### `run_adult.py`
+
+Script de test rapide sur le dataset Adult
+pour comparer :
+
+* XGBoost ;
+* RIPPER ;
+* BRCG.
+
+------------------------------------------------------
+
+## Notebooks
+
+### `1.data_prep.ipynb`
+
+Préparation et nettoyage des données.
+
+### `2.modeling.ipynb`
+
+Entraînement des modèles.
+
+### `3.eval_CMR.ipynb`
+
+Évaluation des règles CMR.
+
+### `4.personalize_rules.ipynb`
+
+Personnalisation et analyse des règles générées.
+
+------------------------------------------------------
+
+# Datasets utilisés
+
+```python
+DATASETS = {
+    "KDD99": "Datasets/KDD99/",
+    "BIG15": "Datasets/BIG15/",
+    "UNSW-NB15": "Datasets/UNSW-NB15/processed/",
+    "DoH20": "Datasets/DoH20/"
+}
+```
+
+Datasets utilisés pour :
+
+* détection d’intrusion ;
+* classification réseau ;
+* cybersécurité ;
+* trafic malveillant.
+
+------------------------------------------------------
+
+# Métriques utilisées
+
+## Classification
+
+* F1_train
+* F1_test
+* Accuracy
+
+## Coverage
+
+* Train_Coverage
+* Test_Coverage
+* Coverage_total
+
+## Fidelity
+
+* Fidelity
+* Fidelity_covered
+
+## Interprétabilité
+
+* Complexité
+* Nombre de règles
+* Nombre de conditions
+
+## Ressources système
+
+* Temps d’exécution
+* RAM utilisée
+* TE / TG / TT
+* RAM_TE_MB / RAM_TG_MB / RAM_TT_MB
+
+------------------------------------------------------
+
+# Interprétation des méthodes
+
+## CMR
+
+* génère des règles exclusives ;
+* mesure un coverage réel ;
+* calcule la fidélité sur les cas couverts.
+
+## RIPPER
+
+* algorithme de règles supervisées ;
+* produit un ensemble de règles interprétables ;
+* coverage considéré comme complet.
+
+## BRCG
+
+* modèle logique basé sur optimisation ;
+* recherche des règles compactes ;
+* privilégie des règles simples et interprétables.
+
+------------------------------------------------------
+
+# Exécution avec Docker
+
+## Construction de l’image
+
+sur terminal : 
+docker build -t cmr-project .
+
+
+------------------------------------------------------
+
+## Lancement du projet
+
+sur terminal : 
+docker run cmr-project
+
+
+------------------------------------------------------
+
+## Utilisation des datasets locaux
+
+Les datasets ne sont pas inclus dans le dépôt GitHub.
+
+Ils doivent être placés dans le dossier :
+
+Datasets/
+
+
+Structure attendue :
+
+
+Datasets/
+        KDD99/
+        BIG15/
+        UNSW-NB15/
+                processed/
+        DoH20/
+
+
+Exécution avec montage local :
+
+sur terminal : 
+docker run -v ${PWD}/Datasets:/app/Datasets cmr-project
+
+
+------------------------------------------------------
+
+# Résultats
+
+Les résultats sont sauvegardés dans :
+                                        results/
+
+Fichier principal :
+                results/progress_iterations.csv
+
+Tableau comparatif final :
+
+                results/tableau_comparaison_moyenne.csv
+
+tableau_comparative_google_Colab.ipynb : permet de visualiser et analyser les résultats.
+
+------------------------------------------------------
+
+## Tableaux générés
+
+Les tableaux finaux sont enregistrés dans :
+
+results/tableaux_results/
+
+
+Scripts associés :
+
+* `tableaux/generate_table7.py` : génère le tableau global des performances.
+* `tableaux/generate_table8.py` : analyse l’impact du paramètre `s_min` sur CMR.
+* `tableaux/generate_table9.py` : calcule les moyennes et écarts-types sur les itérations.
+* `tableaux/generate_table10.py` : compare CMR aux méthodes de référence avec le test de Wilcoxon.
+
+Fichiers générés :
+
+results/tableaux_results/table7.csv
+results/tableaux_results/table8.csv
+results/tableaux_results/table9.csv
+results/tableaux_results/table10.csv
+
+Description rapide :
+
+* Table 7 : comparaison globale des performances, temps, mémoire et complexité.
+* Table 8 : impact du paramètre `s_min` sur la couverture, les conflits, le F1 et la complexité.
+* Table 9 : stabilité des méthodes avec moyenne et écart-type `(μ ± σ)`.
+* Table 10 : comparaison statistique entre CMR, RIPPER et BRCG.
+
+------------------------------------------------------
+
+## Figures et distributions
+
+Les figures générées sont enregistrées dans :
+
+results/distributions/
+
+Ce dossier contient les graphiques de distribution des métriques, par exemple :
+
+F1_test.png
+Temps.png
+RAM_MB.png
+TE.png
+TG.png
+TT.png
+RAM_TE_MB.png
+RAM_TG_MB.png
+RAM_TT_MB.png
+Coverage_total.png
+Fidelity_covered.png
+
+
+Ces figures permettent de visualiser les performances, le temps d’exécution, la mémoire utilisée, la couverture et la fidélité selon les méthodes et les datasets.
+
+------------------------------------------------------
+
+# Bibliothèques principales
+
+* XGBoost
+* AIX360
+* CVXPY
+* scikit-learn
+* pandas
+* NumPy
+* matplotlib
+* seaborn
+* wittgenstein
+
+------------------------------------------------------
+
+# Environnement expérimental
+
+Les expériences ont été réalisées avec :
+
+* Python 3.9
+* Windows 10
+* scikit-learn 1.6.1
+* NumPy 1.23.5
+* pandas 1.5.3
+
+## Configuration de la machine
+
+Les expériences ont été réalisées dans l’environnement technique suivant :
+
+* Système d’exploitation : Windows 10
+* Processeur : Intel64 Family 6 Model 78 (GenuineIntel)
+* Mémoire RAM : 15.41 Go
+* Langage de programmation : Python 3.9.25 (64 bits)
+
+------------------------------------------------------
+
+## Auteur
+
+Souleymane Bah  
+Maîtrise en Intelligence Artificielle  
+Université du Québec à Chicoutimi (UQAC)
+2026
 

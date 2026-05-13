@@ -13,6 +13,14 @@ for _, row in df.iterrows():
         "Testing Accuracy": row["Test_Exactitude"],
         "Testing Coverage": row["Test_Coverage"],
         "Rule Complexity": row["Complexité"],
+        "Test Time (s)": row["Temps"],
+        "Test Memory (MB)": row["RAM_MB"],
+        "Training Time (TE)": row["TE"],
+        "Rule Generation Time (TG)": row["TG"],
+        "Total Explanation Time (TT)": row["TT"],
+        "Training Memory (MB)": row["RAM_TE_MB"],
+        "Rule Generation Memory (MB)": row["RAM_TG_MB"],
+        "Total Explanation Memory (MB)": row["RAM_TT_MB"],
         "F1 Hybrid": row["F1_rr"],
     })
 
