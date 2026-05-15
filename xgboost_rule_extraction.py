@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # 1. Import des bibliothèches principales
 import time
 import xgboost as xgb

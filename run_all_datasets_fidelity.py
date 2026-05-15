@@ -20,10 +20,9 @@ from utils import (
     run_with_peak_ram,
     combine_time_ram,
 )
-from utils import align_test_for_brcg
+from utils import align_test_for_brcg, compute_all_fidelities, compute_all_coverage_fidelity
 from predictions_rules import get_all_rule_predictions, predict_brcg
-from fidelity import compute_all_fidelities
-from covered_fidelity import compute_all_coverage_fidelity
+
 
 from cmr_pure import (
     evaluate_cmr_pure,

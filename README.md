@@ -107,35 +107,6 @@ et produit :
 
 ------------------------------------------------------
 
-## Calcul de fidélité
-
-### `fidelity.py`
-
-Compare :
-
-predictions_model
-                        vs
-                                predictions_rules
-
-
-Calcule la fidélité globale des règles
-par rapport au modèle XGBoost.
-
-------------------------------------------------------
-
-## Coverage et fidélité couverte
-
-### `covered_fidelity.py`
-
-Calcule :
-* Coverage_total
-* Fidelity_covered
-
-La fidélité couverte est calculée uniquement
-sur les données réellement couvertes par les règles.
-
-------------------------------------------------------
-
 ## Algorithme RIPPER
 
 ### `ripper_algorithm.py`
@@ -186,10 +157,18 @@ Regroupe les fonctions générales du projet :
 
 * chargement des datasets ;
 * préparation des données ;
-* nettoyage ;
-* mesure du temps ;
+* nettoyage des données ;
+* alignement des variables ;
+* calcul des métriques ;
+* calcul de fidélité ;
+* calcul de coverage ;
+* calcul de Fidelity_covered ;
+* mesure du temps d’exécution ;
 * mesure de la RAM ;
-* alignement des données.
+* création des dossiers de résultats.
+
+Le fichier centralise les fonctions réutilisables utilisées dans les expériences.
+
 
 ------------------------------------------------------
 
@@ -253,8 +232,11 @@ pour comparer :
 * BRCG.
 
 ------------------------------------------------------
-
 ## Notebooks
+
+Les notebooks du projet sont regroupés dans le dossier : notebooks/
+
+
 
 ### `1.data_prep.ipynb`
 
@@ -271,6 +253,10 @@ Entraînement des modèles.
 ### `4.personalize_rules.ipynb`
 
 Personnalisation et analyse des règles générées.
+
+### `5.tableau_comparative_google_Colab.ipynb`
+
+visualisation et analyse des résultats expérimentaux.
 
 ------------------------------------------------------
 

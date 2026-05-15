@@ -1,16 +1,8 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # # Adult Dataset
 
 # ## chargement et traitement de l'ensemble de données
 
 # ### 1. Import des librairies
-
-# In[112]:
-
-
-# Test des imports pour s'assurer que tout est installé
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -25,9 +17,6 @@ warnings.filterwarnings("ignore")
 
 
 # ### 2. Définition des types de données & chargement du dataset
-
-# In[113]:
-
 
 # Définition des types de données
 data_type = {'age': float,
@@ -61,22 +50,13 @@ df = pd.read_csv(
     skipinitialspace=True
 )
 
-
 # ### 3. Nettoyage des noms de colonnes & informations dataset
-
-# In[114]:
-
-
 # Renommage des colonnes (- en _)
 df.columns = df.columns.str.replace('-', '_')
 df.info()
 
 
 # ### 4. Préparation des données pour l’apprentissage supervisé
-
-# In[115]:
-
-
 # Préparation des données :
 # 1. Définition de la variable cible
 # 2. Analyse de la distribution des classes
@@ -101,10 +81,6 @@ x_test = test.drop(columns=[TARGET_COLUMN])
 
 
 # ### 5. Encodage des variables catégorielles
-
-# In[116]:
-
-
 # convertion des variables catégorielles en valeurs numériques
 from sklearn.preprocessing import LabelEncoder
 
@@ -119,11 +95,6 @@ for col in x_train.select_dtypes(include=[object]).columns:
 
 
 # ## Évaluation de règle de classification basé sur une ou plusieurs règles
-
-# ### 1. Évaluation d’une règle de classification basé sur une seul règles
-
-# In[117]:
-
 
 # Ici on teste avec une seul regle :  rule_mask
 def calculate_coverage_and_correctness(X_test, y_test, mapping):
@@ -172,10 +143,6 @@ def calculate_coverage_and_correctness(X_test, y_test, mapping):
 
 
 # ### Évaluation d’un modèle basé sur plusieurs règles
-
-# In[118]:
-
-
 #ici on n’est plus sur une seule règle, mais sur un ensemble très large de règles combinées avec des OR
 def calculate_coverage_and_correctness(X_test, y_test, mapping):
     """
@@ -358,10 +325,6 @@ def calculate_coverage_and_correctness(X_test, y_test, mapping):
 
 
 # ### Évaluation de la couverture et de la correction des règles
-
-# In[119]:
-
-
 print('train')
 calculate_coverage_and_correctness(x_train, y_train, mapping)
 print('test')
@@ -369,10 +332,6 @@ calculate_coverage_and_correctness(x_test, y_test, mapping)
 
 
 # ### Chargement et préparation du dataset Adult
-
-# In[120]:
-
-
 def prepare_adult_dataset():
     
     return x_train, x_test, y_train, y_test, mapping
