@@ -49,7 +49,7 @@ CMR/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/elyesmanai/Confusion-Matrix-Rules-CMR-.git
+git clone https://github.com/wiseresearch/Confusion-Matrix-Rules-CMR-.git
 cd Confusion-Matrix-Rules-CMR-
 ```
 
@@ -219,19 +219,6 @@ When applying rules to test instances:
 2. If rules agree, use the rule prediction
 3. If rules conflict, use the rule with higher support
 4. If no rules match, use the trained model or majority class
-
-## Citation
-
-If you use this code in your research, please cite:
-
-```bibtex
-@article{cmr2024,
-  title={Confusion Matrix Rules: An Explainable AI Method for Binary Classification},
-  author={[Authors]},
-  journal={[Journal]},
-  year={2024}
-}
-```
 
 ## License
 

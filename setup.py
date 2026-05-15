@@ -18,7 +18,7 @@ setup(
     description="Confusion Matrix Rules - An Explainable AI Method for Binary Classification",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/elyesmanai/Confusion-Matrix-Rules-CMR-",
+    url="https://github.com/wiseresearch/Confusion-Matrix-Rules-CMR-",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
