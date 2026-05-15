@@ -1,5 +1,5 @@
 """
-Training script for KDD99 dataset with CMR rule extraction
+Training script for DoH20 dataset with CMR rule extraction
 """
 
 import os
@@ -16,18 +16,18 @@ from cmr import make_cmc, get_exclusive_rules, get_minmax_rules, compute_rule_co
 
 
 def main():
-    """Train model and extract CMR rules for KDD99 dataset"""
+    """Train model and extract CMR rules for DoH20 dataset"""
     
     print("=" * 60)
-    print("Training CMR on KDD99 Dataset")
+    print("Training CMR on DoH20 (DOHBRW-20) Dataset")
     print("=" * 60)
     
     # Load data
-    print("\n1. Loading KDD99 dataset...")
-    X_train = pd.read_csv('../Datasets/KDD99/X_train.csv')
-    X_test = pd.read_csv('../Datasets/KDD99/X_test.csv')
-    y_train = pd.read_csv('../Datasets/KDD99/y_train.csv').values.ravel()
-    y_test = pd.read_csv('../Datasets/KDD99/y_test.csv').values.ravel()
+    print("\n1. Loading DoH20 dataset...")
+    X_train = pd.read_csv('../Datasets/DoH20/X_train.csv')
+    X_test = pd.read_csv('../Datasets/DoH20/X_test.csv')
+    y_train = pd.read_csv('../Datasets/DoH20/y_train.csv').values.ravel()
+    y_test = pd.read_csv('../Datasets/DoH20/y_test.csv').values.ravel()
     print(f"   Train size: {X_train.shape}")
     print(f"   Test size: {X_test.shape}")
     
@@ -51,7 +51,7 @@ def main():
     
     # Save model
     os.makedirs('../Models', exist_ok=True)
-    model_path = '../Models/KDD99.pkl'
+    model_path = '../Models/DoH20.pkl'
     joblib.dump(model, model_path)
     print(f"   Model saved to {model_path}")
     
@@ -62,9 +62,9 @@ def main():
     print(train_cmc['CMC'].value_counts())
     
     # Save CMC
-    os.makedirs('../Datasets/KDD99', exist_ok=True)
-    train_cmc.to_csv('../Datasets/KDD99/train_cmc.csv', index=False)
-    print(f"   CMC saved to ../Datasets/KDD99/train_cmc.csv")
+    os.makedirs('../Datasets/DoH20', exist_ok=True)
+    train_cmc.to_csv('../Datasets/DoH20/train_cmc.csv', index=False)
+    print(f"   CMC saved to ../Datasets/DoH20/train_cmc.csv")
     
     # Extract exclusive rules
     print("\n4. Extracting exclusive rules...")
@@ -78,19 +78,19 @@ def main():
     
     # Save rules
     os.makedirs('../Rules', exist_ok=True)
-    exclusive_rules_sorted.to_csv('../Rules/KDD99_exclusive_rules.csv', index=False)
-    print(f"   Rules saved to ../Rules/KDD99_exclusive_rules.csv")
+    exclusive_rules_sorted.to_csv('../Rules/DOH20_exclusive_rules.csv', index=False)
+    print(f"   Rules saved to ../Rules/DOH20_exclusive_rules.csv")
     
     # Extract min-max rules (optional)
     print("\n6. Extracting min-max rules...")
     minmax_rules = get_minmax_rules(train_cmc, analysis_features)
     print(f"   Number of min-max rules: {len(minmax_rules)}")
     if len(minmax_rules) > 0:
-        minmax_rules.to_csv('../Rules/KDD99_minmax_rules.csv', index=False)
-        print(f"   Min-max rules saved to ../Rules/KDD99_minmax_rules.csv")
+        minmax_rules.to_csv('../Rules/DOH20_minmax_rules.csv', index=False)
+        print(f"   Min-max rules saved to ../Rules/DOH20_minmax_rules.csv")
     
     print("\n" + "=" * 60)
-    print("KDD99 Training Complete!")
+    print("DoH20 Training Complete!")
     print("=" * 60)
 
 
